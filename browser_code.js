@@ -62,6 +62,12 @@ drTrack = function(){
       document.cookie = cookie_str; // save the cookie
     }
   }
+
+  function clearClids(){
+    time.setTime(past_cutoff);
+    var cookie_str = 'dr_clids=' + "clearing" + ';expires=' + time.toUTCString() + ';path=/';
+    document.cookie = cookie_str;
+  }
       
   function attributeCredit(attribution_model){
     credited_clid_array = clid_array; // don't overwrite the clid array, use another array
