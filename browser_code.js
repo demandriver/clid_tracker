@@ -110,6 +110,7 @@ drTrack = function(){
     xhr.open("POST", endpoint, true); // open request
     //xhr.setRequestHeader('content-type', 'application/json');
     xhr.send(JSON.stringify({"type":type,"clicks":credited_clid_array,"data":data})); // send data
+    if(type == "purchase"){clearClids();}
   }
 
   //functions available after loading script
