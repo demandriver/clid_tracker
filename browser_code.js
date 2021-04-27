@@ -3,8 +3,8 @@ drTrack = function(){
   This script contains tools to store clids in a 1st party cookie and send them out
   
     cookie_format = 
-      [{ "type":"none", "string":"none", "timestamp":01125153534},
-      { "type":"fbclid", "string":"xkklnasdg2351uyi231231sdf5", "timestamp":01125153534}]
+      [{"type":"none","string":"none","timestamp":01125153534,"agency":"self"},
+      {"type":"fbclid","string":"xkklnasdg2351uyi231231sdf5","timestamp":01125153534,"agency":"demandriver"}]
   */
   
   //define vars accessible within namespace drTrack
@@ -18,6 +18,7 @@ drTrack = function(){
   var past_cutoff;
   var clid_array;
   var credited_clid_array;
+  var agency;
   
   //init namespace vares and run clid handler
   function init(cookie, duration, clids){
@@ -31,6 +32,7 @@ drTrack = function(){
     past_cutoff = now - clid_duration; // integer, milliseconds since Jan 1, 1970 until past cutoff date for cookie/clid duration
     clid_array = [];
     credited_clid_array = [];
+    agency = url.searchParams.get("agency");
     runClidHandler(); // see if there are clids, update and load into vars
   } 
         
@@ -48,14 +50,14 @@ drTrack = function(){
     for (x in clid_types){ //for each time of clid we are tracking
       var clid_type = clid_types[x];
       var clid_string = url.searchParams.get(clid_type); // pick off the value from url
-      if (clid_string){clid_array.push({"type":clid_type, "string":clid_string, "timestamp":now});} // if you found a value, add the clid into namespace clids
+      if (clid_string){clid_array.push({"type":clid_type, "string":clid_string, "timestamp":now, "agency":agency});} // if you found a value, add the clid into namespace clids
     }
     //repeat following until timestamp on first entry is greater than past cutoff
     while ( clid_array[0].timestamp < past_cutoff ){clid_array.shift();} //remove top (oldest) clid from array
   }
       
   function runClidHandler(){
-    if (new RegExp(clid_types.join("|")).test(url.href)){ // only run if clids found in url
+    if (agency){ // only run if clids found in url
       updateClids();
       time.setTime(future_cutoff); //set expiration date
       var cookie_str = 'dr_clids=' + JSON.stringify(clid_array) + ';expires=' + time.toUTCString() + ';path=/';
