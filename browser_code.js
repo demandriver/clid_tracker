@@ -1,4 +1,4 @@
-drTrack = function(){
+dr_Track = function(){ //added underscore so it could be a separate function name. Otherwise it would have interferred with already installed code for Hirsch and Timber
   /*
   This script contains tools to store clids in a 1st party cookie and send them out
   
