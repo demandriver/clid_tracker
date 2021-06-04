@@ -101,10 +101,10 @@ drInSite = function(){
     document.cookie = cookie_str;
   }
         
-  function sendSources(endpoint){
+  function sendSources(endpoint, data=""){
     var xhr = new XMLHttpRequest();
     xhr.open("POST", endpoint, true);
-    xhr.send(JSON.stringify(sources));
+    xhr.send(JSON.stringify({'sources':sources,'data':data}));
   }
         
   return{
