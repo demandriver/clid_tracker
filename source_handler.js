@@ -1,115 +1,100 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-  var a_tags = document.querySelectorAll('a');
-  let url = new URL(window.location);
-  let source_code = url.searchParams.get('source');
-  if (source_code){
-    for (var i = 0; i < a_tags.length; i++){
-      url.href = a_tags[i].href; //reset URL object href to current <a> href
-      window_host = window.location.hostname.split(".").slice(-2).join(".");
-      a_tag_host = a_tags[i].hostname.split(".").slice(-2).join(".");
-      if ( window_host == a_tag_host  && !url.searchParams.get('source')){ //if link is insite and source isn't already in the <a> link
-        url.searchParams.append('source', source_code);
-        a_tags[i].href = url.href;
-      }
-    }
-  }
-});
+drSources = function(){
   
-drInSite = function(){
+  //initialize vars to be used inside the function
+  var url;
+  var url_sources;
+  var agency_param;
   
   var cookie_name;
+  var cookie_sources;
   var cookie_duration;
+  
+  var all_sources;
+  
   var time;
   var now;
   var future_cutoff;
   var past_cutoff;
-  var url;
-  var click_src;
-  var sources;
-    
-  function run(cookie = "dr_sources", duration = 30*24*60*60*1000){
-    cookie_name = cookie;
-    cookie_duration = duration;
+  
+  function init(cookie = 'dr_sources', duration = 30*24*60*60*1000, debug = false){
+    //assign vars
     url = new URL(window.location.href);
+    agency_param = url.searchParams.get('agency');
+    if(agency_param == 'demandriver'){
+      let source_param = url.searchParams.get('source'); //strip of source param from url
+      if(source_param){url_sources = source_param.split('-');} //if you found a source param, store as array in url_sources
+    }
+    
+    cookie_name = cookie;
+    cookie_sources = storedSources(); //get stored sources from cookie
+    cookie_duration = duration;
+
+    all_sources = getAllSources(); //combine stored sources and url sources
+
     time = new Date();
     now = time.getTime();
     future_cutoff = now + cookie_duration;
-    past_cutoff = now + cookie_duration;
-    getSource();
-    readStoredSources();
-    addSource();
+
     saveSources();
-  }
-    
-  function getSource(){
-    switch(url.searchParams.get("source")){
-      case 'fb':
-        click_src = "facebook";
-        break;
-      case 'ig':
-        click_src = "instagram";
-        break;
-      case 'msg':
-        click_src = "messenger";
-        break;
-      case 'an':
-        click_src = "fb_audience_network";
-        break;
-      case 'g':
-        click_src = "google_search";
-        break;
-      case 's':
-        click_src = "google_search_partners";
-        break;
-      case 'd':
-        click_src = "google_display";
-        break;
-      case 'u':
-        click_src = "google_smart_shopping";
-        break;
-      case 'ytv':
-        click_src = "youtube_videos";
-        break;
-      case 'yts':
-        click_src = "youtube_search";
-        break;
-      case 'vp':
-        click_src = "google_video_partners";
-        break;
-      default:
-        click_src = "unknown";
+    addSourceParam();
+
+    if(debug){
+      console.log("drSource vars:");
+      console.log(url_sources);
+      console.log(cookie_sources);
+      console.log(all_sources);
     }
   }
-   
-  function readStoredSources(){
+  
+  function storedSources(){
     const getCookie = (name) => (
       document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || undefined
     )
-    var stored_sources = getCookie(cookie_name);
-    if (stored_sources){sources = JSON.parse(stored_sources);}else{sources = [];}
-  }
-        
-  function addSource(){
-    if (click_src != "unknown" && !sources.includes(click_src)){
-      sources.push(click_src);
+    let cookie = getCookie(cookie_name);
+    if(cookie){
+      return cookie.split('-');
+    }else{
+      return null;
     }
   }
-    
-  function saveSources(){
-    time.setTime(future_cutoff); //set expiration date
-    var cookie_str = cookie_name + '=' + JSON.stringify(sources) + ';expires=' + time.toUTCString() + ';path=/';
-    document.cookie = cookie_str;
+  
+  function getAllSources(){
+    if(url_sources && cookie_sources){
+      return [...new Set(url_sources.concat(cookie_sources))];
+    }else if(url_sources){
+      return [...new Set(url_sources)];
+    }else if(cookie_sources){
+      return [...new Set(cookie_sources)];
+    }else{
+      return null;
+    }
   }
-        
-  function sendSources(endpoint, data=""){
+  
+  function saveSources(){
+    if(all_sources){
+      time.setTime(future_cutoff); //set expiration date
+      let cookie_str = cookie_name + '=' + all_sources.join('-') + ';expires=' + time.toUTCString() + ';path=/';
+      document.cookie = cookie_str;
+    }
+  }
+  
+  function addSourceParam(){
+    if(all_sources){
+      url.searchParams.set('agency','demandriver');
+      url.searchParams.set('source',all_sources.join('-'));
+      window.history.replaceState(null, null, url.href);
+    }
+  }
+  
+  function sendSources(endpoint,data = ''){
     var xhr = new XMLHttpRequest();
     xhr.open("POST", endpoint, true);
-    xhr.send(JSON.stringify({'sources':sources,'data':data}));
+    xhr.send(JSON.stringify({cookie_name:all_sources,'data':data}));
   }
-        
+  
   return{
-    run:run,
+    init:init,
     send:sendSources
-    //conversion:reportConversion
   }
+
 }();
