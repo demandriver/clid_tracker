@@ -87,9 +87,11 @@ drSources = function(){
   }
   
   function sendSources(endpoint,data = ''){
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", endpoint, true);
-    xhr.send(JSON.stringify({cookie_name:all_sources,'data':data}));
+    if(all_sources){
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", endpoint, true);
+      xhr.send(JSON.stringify({cookie_name:all_sources,'data':data}));
+    }
   }
   
   return{
