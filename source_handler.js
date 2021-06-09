@@ -90,7 +90,7 @@ drSources = function(){
     if(all_sources){
       var xhr = new XMLHttpRequest();
       xhr.open("POST", endpoint, true);
-      xhr.send(JSON.stringify({cookie_name:all_sources,'data':data}));
+      xhr.send(JSON.stringify({'dr_sources':all_sources,'data':data}));
     }
   }
   
